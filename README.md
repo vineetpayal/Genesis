@@ -1,0 +1,2 @@
+# Genesis
+Setting up project
