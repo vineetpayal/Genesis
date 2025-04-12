@@ -83,6 +83,30 @@ vector<Token> tokenize(const string &str)
     return tokens;
 }
 
+string tokens_to_asm(vector<Token> &tokens)
+{
+    stringstream output;
+    output << "global _start\nstart:\n";
+
+    for (int i = 0; i < tokens.size(); i++)
+    {
+        Token token = tokens[i];
+        if (token.type == TokenType::_return)
+        {
+            if (i + 1 < tokens.size() && tokens[i + 1].type == TokenType::int_lit)
+            {
+                if (i + 2 < tokens.size() && tokens[i + 2].type == TokenType::semi)
+                {
+                    output << "    mov rax, 60\n";
+                    output << "    mov rdi, " << tokens[i + 1].value.value() << "\n";
+                    output << "    syscall";
+                }
+            }
+        }
+    }
+    return output.str();
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -104,7 +128,7 @@ int main(int argc, char *argv[])
     // lexical analysis
     vector<Token> tokens = tokenize(contents);
 
-    cout << tokens.size();
+    cout << tokens_to_asm(tokens);
 
     return EXIT_SUCCESS;
 }
