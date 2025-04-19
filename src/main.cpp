@@ -7,7 +7,7 @@ using namespace std;
 
 enum class TokenType
 {
-    _return,
+    exit,
     int_lit,
     semi
 };
@@ -39,9 +39,9 @@ vector<Token> tokenize(const string &str)
             }
             i--;
 
-            if (buff == "return")
+            if (buff == "exit")
             {
-                tokens.push_back({.type = TokenType::_return});
+                tokens.push_back({.type = TokenType::exit});
                 buff.clear();
                 continue;
             }
@@ -86,12 +86,12 @@ vector<Token> tokenize(const string &str)
 string tokens_to_asm(vector<Token> &tokens)
 {
     stringstream output;
-    output << "global _start\nstart:\n";
+    output << "global _start\n_start:\n";
 
     for (int i = 0; i < tokens.size(); i++)
     {
         Token token = tokens[i];
-        if (token.type == TokenType::_return)
+        if (token.type == TokenType::exit)
         {
             if (i + 1 < tokens.size() && tokens[i + 1].type == TokenType::int_lit)
             {
@@ -128,7 +128,13 @@ int main(int argc, char *argv[])
     // lexical analysis
     vector<Token> tokens = tokenize(contents);
 
-    cout << tokens_to_asm(tokens);
+    {
+        fstream file("../out.asm", ios::out);
+        file<<tokens_to_asm(tokens);
+    }
+
+    system("nasm -felf64 ../out.asm");
+    system("ld -o out ../out.o");
 
     return EXIT_SUCCESS;
 }
