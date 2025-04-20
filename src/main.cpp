@@ -4,30 +4,9 @@
 #include <optional>
 #include <vector>
 #include "tokenization.hpp"
+#include "parser.hpp"
+#include "generation.hpp"
 using namespace std;
-
-
-vector<Token> tokenize(const string &str) {
-}
-
-string tokens_to_asm(vector<Token> &tokens) {
-    stringstream output;
-    output << "global _start\n_start:\n";
-
-    for (int i = 0; i < tokens.size(); i++) {
-        Token token = tokens[i];
-        if (token.type == TokenType::exit) {
-            if (i + 1 < tokens.size() && tokens[i + 1].type == TokenType::int_lit) {
-                if (i + 2 < tokens.size() && tokens[i + 2].type == TokenType::semi) {
-                    output << "    mov rax, 60\n";
-                    output << "    mov rdi, " << tokens[i + 1].value.value() << "\n";
-                    output << "    syscall";
-                }
-            }
-        }
-    }
-    return output.str();
-}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -46,9 +25,21 @@ int main(int argc, char *argv[]) {
 
     // lexical analysis
     Tokenizer tokenizer(move(contents));
-    vector<Token> tokens = tokenizer.tokenize(); {
+    vector<Token> tokens = tokenizer.tokenize();
+
+    //Parsing
+    Parser parser(move(tokens));
+    optional<NodeExit> tree = parser.parse();
+
+    if (!tree.has_value()) {
+        cerr << "No exit statement found" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    //Intermediate Code Generation
+    Generator generator(tree.value()); {
         fstream file("../out.asm", ios::out);
-        file << tokens_to_asm(tokens);
+        file << generator.generate();
     }
 
     system("nasm -felf64 ../out.asm");
