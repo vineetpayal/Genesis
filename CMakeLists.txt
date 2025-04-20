@@ -4,4 +4,6 @@ project(genesis)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(geny src/main.cpp)
+add_executable(geny src/main.cpp
+        src/tokenization.hpp
+)
