@@ -10,7 +10,12 @@ using namespace std;
 enum class TokenType {
     exit,
     int_lit,
-    semi
+    semi,
+    open_paren,
+    close_paren,
+    ident,
+    let,
+    eq
 };
 
 struct Token {
@@ -29,11 +34,11 @@ public:
 
         string buff;
 
-        while (peak().has_value()) {
-            if (isalpha(peak().value())) {
+        while (peek().has_value()) {
+            if (isalpha(peek().value())) {
                 buff.push_back(consume());
 
-                while (peak().has_value() && isalnum(peak().value())) {
+                while (peek().has_value() && isalnum(peek().value())) {
                     buff.push_back(consume());
                 }
 
@@ -41,23 +46,40 @@ public:
                     tokens.push_back({.type = TokenType::exit});
                     buff.clear();
                     continue;
+                } else if (buff == "let") {
+                    tokens.push_back({.type = TokenType::let, .value = buff});
+                    buff.clear();
+                    continue;
                 } else {
-                    cerr << "You messed up!" << endl;
-                    exit(EXIT_FAILURE);
+                    tokens.push_back({.type = TokenType::ident, .value = buff});
+                    buff.clear();
+                    continue;
                 }
-            } else if (isdigit(peak().value())) {
+            } else if (isdigit(peek().value())) {
                 buff.push_back(consume());
-                while (peak().has_value() && isdigit(peak().value())) {
+                while (peek().has_value() && isdigit(peek().value())) {
                     buff.push_back(consume());
                 }
                 tokens.push_back({.type = TokenType::int_lit, .value = buff});
                 buff.clear();
                 continue;
-            } else if (peak().value() == ';') {
+            } else if (peek().value() == '(') {
+                consume();
+                tokens.push_back({.type = TokenType::open_paren});
+                continue;
+            } else if (peek().value() == ')') {
+                consume();
+                tokens.push_back({.type = TokenType::close_paren});
+                continue;
+            } else if (peek().value() == ';') {
                 consume();
                 tokens.push_back({.type = TokenType::semi});
                 continue;
-            } else if (isspace(peak().value())) {
+            } else if (peek().value() == '=') {
+                consume();
+                tokens.push_back({.type = TokenType::eq});
+                continue;
+            } else if (isspace(peek().value())) {
                 consume();
                 continue;
             } else {
@@ -70,11 +92,11 @@ public:
     }
 
 private:
-    [[nodiscard]] inline  optional<char> peak(int ahead = 1) const {
-        if (m_index + ahead > m_src.length()) {
+    [[nodiscard]] inline optional<char> peek(int offset = 0) const {
+        if (m_index + offset >= m_src.length()) {
             return {};
         } else {
-            return m_src.at(m_index);
+            return m_src.at(m_index + offset);
         }
     }
 
