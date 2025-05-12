@@ -1,3 +1,15 @@
-let x = 7;
-let y = x;
-exit(y);
+// Simple arithmetic and conditionals
+
+let x = 10;
+let y = (x - 2 * 3) / 2;
+let result = 0;
+
+if (0) {
+    result = 1;
+} elif (0) {
+    result = 2;
+} else {
+    result = y;
+}
+
+exit(result);
