@@ -90,6 +90,82 @@ public:
                 gen.m_output << "    div rbx\n";
                 gen.push("rax");
             }
+
+            //relational
+            void operator()(const NodeBinExprEq* eq) const
+            {
+                gen.gen_expr(eq->rhs);
+                gen.gen_expr(eq->lhs);
+                gen.pop("rax");  // Now left operand goes to rax
+                gen.pop("rbx");  // And right operand goes to rbx
+                gen.m_output << "    cmp rax, rbx\n";
+                gen.m_output << "    sete al\n";
+                gen.m_output << "    movzx rax, al\n";
+                gen.push("rax");
+
+            }
+
+            void operator()(const NodeBinExprNotEq* neq) const
+            {
+                gen.gen_expr(neq->rhs);
+                gen.gen_expr(neq->lhs);
+                gen.pop("rax");
+                gen.pop("rbx");
+                gen.m_output << "    cmp rax, rbx\n";
+                gen.m_output << "    setne al\n";
+                gen.m_output << "    movzx rax, al\n";
+                gen.push("rax");
+            }
+
+            void operator()(const NodeBinExprLess* less) const
+            {
+                gen.gen_expr(less->rhs);
+                gen.gen_expr(less->lhs);
+                gen.pop("rax");
+                gen.pop("rbx");
+                gen.m_output << "    cmp rax, rbx\n";
+                gen.m_output << "    setl al\n";
+                gen.m_output << "    movzx rax, al\n";
+                gen.push("rax");
+            }
+
+            void operator()(const NodeBinExprLessEq* less_eq) const
+            {
+                gen.gen_expr(less_eq->rhs);
+                gen.gen_expr(less_eq->lhs);
+                gen.pop("rax");
+                gen.pop("rbx");
+                gen.m_output << "    cmp rax, rbx\n";
+                gen.m_output << "    setle al\n";
+                gen.m_output << "    movzx rax, al\n";
+                gen.push("rax");
+            }
+
+            void operator()(const NodeBinExprGreater* greater) const
+            {
+                gen.gen_expr(greater->rhs);
+                gen.gen_expr(greater->lhs);
+                gen.pop("rax");
+                gen.pop("rbx");
+                gen.m_output << "    cmp rax, rbx\n";
+                gen.m_output << "    setg al\n";
+                gen.m_output << "    movzx rax, al\n";
+                gen.push("rax");
+            }
+
+            void operator()(const NodeBinExprGreaterEq* greater_eq) const
+            {
+                gen.gen_expr(greater_eq->rhs);
+                gen.gen_expr(greater_eq->lhs);
+                gen.pop("rax");  // left operand from x (should be 11)
+                gen.pop("rbx");  // right operand from 10
+                gen.m_output << "    cmp rax, rbx\n";
+                gen.m_output << "    setge al\n";
+                gen.m_output << "    movzx rax, al\n";
+                gen.push("rax");
+            }
+
+
         };
 
         BinExprVisitor visitor { .gen = *this };
