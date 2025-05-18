@@ -1,7 +1,9 @@
+//variable declaration
 let x = 11;
 let y = (x - 2 * 3) / 2;
 let result = 0;
 
+//if else
 if (x == 5 + 6) {
     result = 1;
 }elif (x >= 10){
