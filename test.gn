@@ -3,12 +3,17 @@ let x = 11;
 let y = (x - 2 * 3) / 2;
 let result = 0;
 
+//Single line comment
+/* Multi line comment */
+
 //if else
-if (x == 5 + 6) {
-    result = 1;
+if (x == 1 + 2*5) {
+    result = 1 + 2 * 10;
 }elif (x >= 10){
     result = 11;
 }else{
     result = 3;
 }
+
 exit(result);
+

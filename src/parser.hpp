@@ -88,9 +88,14 @@ struct NodeBinExpr {
 struct NodeTerm {
     std::variant<NodeTermIntLit *, NodeTermIdent *, NodeTermParen *> var;
     // Explicit constructors:
-    NodeTerm(NodeTermIntLit* p) : var(p) {}
-    NodeTerm(NodeTermIdent* p) : var(p) {}
-    NodeTerm(NodeTermParen* p) : var(p) {}
+    NodeTerm(NodeTermIntLit *p) : var(p) {
+    }
+
+    NodeTerm(NodeTermIdent *p) : var(p) {
+    }
+
+    NodeTerm(NodeTermParen *p) : var(p) {
+    }
 };
 
 struct NodeExpr {
@@ -139,8 +144,16 @@ struct NodeStmtAssign {
     NodeExpr *expr{};
 };
 
+struct NodeStmtWhile {
+    NodeExpr *condition;
+    NodeScope *scope;
+};
+
+
 struct NodeStmt {
-    std::variant<NodeStmtExit *, NodeStmtLet *, NodeScope *, NodeStmtIf *, NodeStmtAssign *> var;
+    std::variant<NodeStmtExit *, NodeStmtLet *, NodeScope *, NodeStmtIf *, NodeStmtAssign *,
+    //addes for while loop
+    NodeStmtWhile *> var;
 };
 
 struct NodeProg {
@@ -376,6 +389,28 @@ public:
             }
             stmt_if->pred = parse_if_pred();
             auto stmt = m_allocator.emplace<NodeStmt>(stmt_if);
+            return stmt;
+        }
+
+        //To parse while loop
+        if (try_consume(TokenType::while_)) {
+            try_consume_err(TokenType::open_paren);
+            auto condition = parse_expr();
+            if (!condition.has_value()) {
+                error_expected("expression");
+            }
+            try_consume_err(TokenType::close_paren);
+            auto scope = parse_scope();
+            if (!scope.has_value()) {
+                error_expected("scope");
+            }
+            // Allocate the while statement node using the arena allocator:
+            auto while_stmt = m_allocator.emplace<NodeStmtWhile>();
+            while_stmt->condition = condition.value();
+            while_stmt->scope = scope.value();
+
+            auto stmt = m_allocator.emplace<NodeStmt>();
+            stmt->var = while_stmt;
             return stmt;
         }
         return {};
