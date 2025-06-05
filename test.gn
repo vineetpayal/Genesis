@@ -15,5 +15,15 @@ if (x == 1 + 2*5) {
     result = 3;
 }
 
+let n = 0;
+
+input(n);
+
+let i = 1;
+while(i <= n){
+    print(i);
+    i = i + 1;
+}
+
 exit(result);
 

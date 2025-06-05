@@ -29,7 +29,10 @@ enum class TokenType {
     greater, // ">"
     greater_eq, // ">="
     //loops
-    while_
+    while_,
+    // New tokens for input/output:
+    print,
+    input,
 };
 
 inline std::string to_string(const TokenType type) {
@@ -82,6 +85,10 @@ inline std::string to_string(const TokenType type) {
             return ">=";
         case TokenType::while_:
             return "`while`";
+        case TokenType::print:
+            return "`print`";
+        case TokenType::input:
+            return "`input`";
     }
     assert(false);
 }
@@ -146,6 +153,12 @@ public:
                 } else if (buf == "while") {
                     // New check for while
                     tokens.push_back({TokenType::while_, line_count});
+                    buf.clear();
+                } else if (buf == "print") {
+                    tokens.push_back({TokenType::print, line_count});
+                    buf.clear();
+                } else if (buf == "input") {
+                    tokens.push_back({TokenType::input, line_count});
                     buf.clear();
                 } else {
                     tokens.push_back({TokenType::ident, line_count, buf});

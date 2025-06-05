@@ -298,6 +298,38 @@ public:
                 gen.m_output << exit_label << ":\n";
                 gen.m_output << "    ;; /while\n";
             }
+
+            //code generation for print statement
+            void operator()(const NodeStmtPrint *stmt_print) const {
+                gen.m_output << "    ;; print\n";
+                // Evaluate the expression (result is pushed onto the stack)
+                gen.gen_expr(stmt_print->expr);
+                gen.pop("rax"); // Retrieve evaluated result from the stack
+                // Use an external function to print the integer.
+                // This function (print_int) must be defined externally (in assembly or C) and linked.
+                gen.m_output << "    mov rdi, rax\n";
+                gen.m_output << "    call print_int\n";
+                gen.m_output << "    ;; /print\n";
+            }
+
+            //code generator for input statement
+            void operator()(const NodeStmtInput *stmt_input) const {
+                gen.m_output << "    ;; input\n";
+                // Call an external function input_int which reads an integer from STDIN,
+                // returning the result in rax.
+                gen.m_output << "    call input_int\n";
+                // Now, store the result in the variable's location.
+                const auto it = std::ranges::find_if(gen.m_vars, [&](const Generator::Var &var) {
+                    return var.name == stmt_input->ident.value.value();
+                });
+                if (it == gen.m_vars.cend()) {
+                    std::cerr << "Undeclared identifier in input: " << stmt_input->ident.value.value() << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                // Assuming variable address is [rsp + (offset calculation)]
+                gen.m_output << "    mov [rsp + " << (gen.m_stack_size - it->stack_loc - 1) * 8 << "], rax\n";
+                gen.m_output << "    ;; /input\n";
+            }
         };
 
         StmtVisitor visitor{.gen = *this};
@@ -305,6 +337,7 @@ public:
     }
 
     [[nodiscard]] std::string gen_prog() {
+        m_output<<"extern print_int\nextern input_int\n";
         m_output << "global _start\n_start:\n";
 
         for (const NodeStmt *stmt: m_prog.stmts) {

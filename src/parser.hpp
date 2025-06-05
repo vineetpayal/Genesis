@@ -144,16 +144,28 @@ struct NodeStmtAssign {
     NodeExpr *expr{};
 };
 
+//while loop
 struct NodeStmtWhile {
     NodeExpr *condition;
     NodeScope *scope;
 };
 
+//input and print
+struct NodeStmtPrint {
+    NodeExpr *expr;
+};
+
+struct NodeStmtInput {
+    Token ident; // identifier that will receive the input
+};
+
 
 struct NodeStmt {
     std::variant<NodeStmtExit *, NodeStmtLet *, NodeScope *, NodeStmtIf *, NodeStmtAssign *,
-    //addes for while loop
-    NodeStmtWhile *> var;
+        //addes for while loop
+        NodeStmtWhile *,
+        NodeStmtPrint *,
+        NodeStmtInput *> var;
 };
 
 struct NodeProg {
@@ -413,6 +425,40 @@ public:
             stmt->var = while_stmt;
             return stmt;
         }
+
+        //print statement
+        if (try_consume(TokenType::print)) {
+            try_consume_err(TokenType::open_paren);
+            auto expr = parse_expr();
+            if (!expr.has_value()) {
+                error_expected("expression");
+            }
+            try_consume_err(TokenType::close_paren);
+            try_consume_err(TokenType::semi);
+            auto print_stmt = m_allocator.emplace<NodeStmtPrint>();
+            print_stmt->expr = expr.value();
+            auto stmt = m_allocator.emplace<NodeStmt>();
+            stmt->var = print_stmt;
+            return stmt;
+        }
+
+        //input statement
+        if (try_consume(TokenType::input)) {
+            try_consume_err(TokenType::open_paren);
+            auto ident = try_consume(TokenType::ident);
+            if (!ident.has_value()) {
+                error_expected("identifier");
+            }
+            try_consume_err(TokenType::close_paren);
+            try_consume_err(TokenType::semi);
+            auto input_stmt = m_allocator.emplace<NodeStmtInput>();
+            input_stmt->ident = ident.value();
+            auto stmt = m_allocator.emplace<NodeStmt>();
+            stmt->var = input_stmt;
+            return stmt;
+        }
+
+
         return {};
     }
 
